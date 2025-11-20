@@ -6,9 +6,8 @@ Usage: `scfetch [paddingLeft] [boxWidth]`
 
 Default: `scfetch 0 35`
 
+Build with gcc: `gcc main.c -o scfetch`
+
 ![](.github/focusedScreenshot.png)
 ![](.github/screenshot.png)
-
-Build with gcc:
-`gcc main.c -o scfetch`
 
