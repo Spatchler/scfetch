@@ -12,7 +12,7 @@
 #include <dirent.h>
 
 void boxFormat(char* icon, char* start, char* end, char* color, unsigned int paddingLeft, unsigned int boxWidth) {
-    char out[100] = {};
+    char out[500] = {};
     char* space = " ";
     char* boxStart = "│ ";
     char* boxEnd = " │";
@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
         }
         if (argc > 2) {
             boxWidth = 0;
-            for (uint i = 0; i < strlen(argv[1]); ++i) {
+            for (uint i = 0; i < strlen(argv[2]); ++i) {
                 boxWidth *= 10;
                 boxWidth += argv[2][i] - '0';
             }
