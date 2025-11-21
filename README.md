@@ -6,7 +6,11 @@ Usage: `scfetch [paddingLeft] [boxWidth]`
 
 Default: `scfetch 0 35`
 
-Build with gcc: `gcc main.c -o scfetch`
+(Pipe into echo for very slightly better performance)
+
+Build with gcc(Remove the macros for the elements you dont want):
+
+`gcc -D_KERNEL -D_UPTIME -D_SHELL -D_RAM -D_SWAP -D_PROCESSES -D_PACKAGES -D_USER -D_HOSTNAME -D_DISTRO main.c -o scfetch`
 
 ![](.github/focusedScreenshot.png)
 ![](.github/screenshot.png)

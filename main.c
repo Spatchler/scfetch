@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include <unistd.h>
 #include <grp.h>
 #include <sys/types.h>
@@ -68,15 +69,19 @@ int main(int argc, char** argv) {
     printf("╮\n");
 
     struct sysinfo sys_info;
-    struct group* grp;
+    char* str = (char*)malloc(10*sizeof(char));
 
-    // kernel
     struct utsname unameData;
     uname(&unameData);
+
+    // Kernel
+#ifdef _KERNEL
     boxFormat("", "kernel:", unameData.release, "\u001b[38;5;16m", paddingLeft, boxWidth);
+#endif
     // -----------------------------
 
-    // uptime
+    // Uptime
+#ifdef _UPTIME
     int days, hours, mins, x = 1;
 
     if(sysinfo(&sys_info) != 0)
@@ -86,12 +91,13 @@ int main(int argc, char** argv) {
     hours = (sys_info.uptime / 3600) - (days * 24);
     mins = (sys_info.uptime / 60) - (days * 1440) - (hours * 60);
 
-    char* str = (char*)malloc(10*sizeof(char));
     sprintf(str, "%d hours, %d minutes", hours, mins);
     boxFormat("", "uptime:", str, "\u001b[37m", paddingLeft, boxWidth);
+#endif
     // -----------------------------
 
-    // shell
+    // Shell
+#ifdef _SHELL
     char path[BUFSIZ], comm[BUFSIZ];
     pid_t parent_pid = getppid();
     int fd;
@@ -102,25 +108,33 @@ int main(int argc, char** argv) {
 
     comm[strcspn(comm, "\n")] = 0; // Remove \n from end of comm
     boxFormat("", "shell:", comm, "\u001b[38;5;16m", paddingLeft, boxWidth);
+#endif
     // -----------------------------
 
     // Ram
+#ifdef _RAM
     double bytesToGBMultiplier = 9.313225746154785e-10;
     sprintf(str, "%.2f GiB / %.2f GiB", (sys_info.totalram - sys_info.freeram) * bytesToGBMultiplier, sys_info.totalram * bytesToGBMultiplier);
     boxFormat("", "mem:", str, "\u001b[38;5;17m", paddingLeft, boxWidth);
+#endif
     // -----------------------------
 
     // Swap
+#ifdef _SWAP
     sprintf(str, "%.2f GiB / %.2f GiB", (sys_info.totalswap - sys_info.freeswap) * bytesToGBMultiplier, sys_info.totalswap * bytesToGBMultiplier);
     boxFormat("", "swap:", str, "\u001b[38;5;16m", paddingLeft, boxWidth);
+#endif
     // -----------------------------
 
     // Processes
+#ifdef _PROCESSES
     sprintf(str, "%d", sys_info.procs);
     boxFormat("", "procs:", str, "\u001b[37m", paddingLeft, boxWidth);
+#endif
     // -----------------------------
     
     // Packages
+#ifdef _PACKAGES
     DIR* dir;
     struct dirent* entry;
     unsigned int count = 0;
@@ -137,21 +151,51 @@ int main(int argc, char** argv) {
 
     sprintf(str, "%u", count);
     boxFormat("", "pkgs:", str, "\u001b[31m", paddingLeft, boxWidth);
+#endif
     // -----------------------------
 
     // User
+#ifdef _USER
     gid_t gid;
+    struct group* grp;
     gid = getgid();
     grp = getgrgid(gid);
     boxFormat("", "user:", grp->gr_name, "\u001b[37m", paddingLeft, boxWidth);
+#endif
     // -----------------------------
 
     // Hostname
+#ifdef _HOSTNAME
     boxFormat("", "hname:", unameData.nodename, "\u001b[34m", paddingLeft, boxWidth);
+#endif
     // -----------------------------
     
     // Distro
-    boxFormat("", "distro:", "Arch Linux", "\u001b[38;5;16m", paddingLeft, boxWidth);
+#ifdef _DISTRO
+    char buf[PATH_MAX];
+    char* res = realpath("/etc/os-release", buf);
+    if (res) {
+        FILE* fptr;
+        fptr = fopen(buf, "r");
+        if (fptr != NULL) {
+            char osName[50];
+            fgets(osName, 50, fptr);
+            fgets(osName, 50, fptr);
+            
+            sprintf(str, "%.*s", strlen(osName) - 15, osName + (strlen(osName) - 12));
+
+            boxFormat("", "distro:", str, "\u001b[38;5;16m", paddingLeft, boxWidth);
+        }
+        else {
+            printf("Unable to open /etc/os-release to find distribution name\n");
+        }
+        fclose(fptr);
+    }
+    else {
+        char* errStr = strerror(errno);
+        printf("error string: %s\n", errStr);
+    }
+#endif
     // -----------------------------
     
     for (unsigned int i = paddingLeft; i != 0; --i)
