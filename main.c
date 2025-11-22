@@ -12,7 +12,12 @@
 #include <sys/utsname.h>
 #include <dirent.h>
 
-void boxFormat(char* icon, char* start, char* end, char* color, unsigned int paddingLeft, unsigned int boxWidth) {
+#define _PACKAGE_PATH "/var/lib/pacman/local/"
+
+void boxFormat(char* icon, char* start, char* end, char* color, unsigned int paddingLeft, unsigned int boxWidth, unsigned int endLen) {
+    if (endLen == 0) {
+        endLen = strlen(end);
+    }
     char out[500] = {};
     char* space = " ";
     char* boxStart = "│ ";
@@ -26,7 +31,7 @@ void boxFormat(char* icon, char* start, char* end, char* color, unsigned int pad
     strcat(out, "\u001b[1m"); // Set bold
     strcat(out, start);
     strcat(out, "\u001b[22m"); // Reset bold
-    for (unsigned int i = boxWidth - (strlen(start) + 5) - strlen(end); i != 0; --i)
+    for (unsigned int i = boxWidth - (strlen(start) + 5) - endLen; i != 0; --i)
         strcat(out, space);
     strcat(out, color); // Set color
     strcat(out, end);
@@ -34,6 +39,17 @@ void boxFormat(char* icon, char* start, char* end, char* color, unsigned int pad
     strcat(out, boxEnd);
     strcat(out, "\n");
     printf("%s", out);
+}
+
+void bar(char* buf, float percent, unsigned int width, char* primaryCharacter, char* halfwayCharacter, char* secondaryCharacter, char* primaryColor, char* halfwayColor, char* secondaryColor) {
+    sprintf(buf, "%s", primaryColor);
+    for (unsigned int i = 0; i < width * percent - 1; ++i) {
+        sprintf(buf + strlen(buf), "%s", primaryCharacter);
+    }
+    sprintf(buf + strlen(buf), "%s%s%s", halfwayColor, halfwayCharacter, secondaryColor);
+    for (unsigned int i = 0; i < width * (1-percent); ++i) {
+        sprintf(buf + strlen(buf), "%s", secondaryCharacter);
+    }
 }
 
 int main(int argc, char** argv) {
@@ -69,14 +85,14 @@ int main(int argc, char** argv) {
     printf("╮\n");
 
     struct sysinfo sys_info;
-    char* str = (char*)malloc(10*sizeof(char));
+    char* str = (char*)malloc(100*sizeof(char));
 
     struct utsname unameData;
     uname(&unameData);
 
     // Kernel
 #ifdef _KERNEL
-    boxFormat("", "kernel:", unameData.release, "\u001b[38;5;16m", paddingLeft, boxWidth);
+    boxFormat("", "kernel:", unameData.release, "\u001b[38;5;16m", paddingLeft, boxWidth, 0);
 #endif
     // -----------------------------
 
@@ -92,7 +108,7 @@ int main(int argc, char** argv) {
     mins = (sys_info.uptime / 60) - (days * 1440) - (hours * 60);
 
     sprintf(str, "%d hours, %d minutes", hours, mins);
-    boxFormat("", "uptime:", str, "\u001b[37m", paddingLeft, boxWidth);
+    boxFormat("", "uptime:", str, "\u001b[37m", paddingLeft, boxWidth, 0);
 #endif
     // -----------------------------
 
@@ -107,29 +123,39 @@ int main(int argc, char** argv) {
     read(fd, comm, BUFSIZ-1);
 
     comm[strcspn(comm, "\n")] = 0; // Remove \n from end of comm
-    boxFormat("", "shell:", comm, "\u001b[38;5;16m", paddingLeft, boxWidth);
+    boxFormat("", "shell:", comm, "\u001b[38;5;16m", paddingLeft, boxWidth, 0);
 #endif
     // -----------------------------
 
     // Ram
 #ifdef _RAM
     double bytesToGBMultiplier = 9.313225746154785e-10;
+#ifdef _BARS
+    bar(str, (float)(sys_info.totalram - sys_info.freeram) / sys_info.totalram, 20, "━","╸", "━", "\u001b[38;5;17m", "\u001b[38;5;17m",  "\u001b[90m");
+    boxFormat("", "mem:", str, "\u001b[38;5;17m", paddingLeft, boxWidth, 21);
+#else
     sprintf(str, "%.2f GiB / %.2f GiB", (sys_info.totalram - sys_info.freeram) * bytesToGBMultiplier, sys_info.totalram * bytesToGBMultiplier);
-    boxFormat("", "mem:", str, "\u001b[38;5;17m", paddingLeft, boxWidth);
+    boxFormat("", "mem:", str, "\u001b[38;5;17m", paddingLeft, boxWidth, 0);
+#endif
 #endif
     // -----------------------------
 
     // Swap
 #ifdef _SWAP
+#ifdef _BARS
+    bar(str, (float)(sys_info.totalswap - sys_info.freeswap) / sys_info.totalswap, 20, "━","╸", "━", "\u001b[38;5;16m", "\u001b[38;5;16m",  "\u001b[90m");
+    boxFormat("", "swap:", str, "\u001b[38;5;16m", paddingLeft, boxWidth, 21);
+#else
     sprintf(str, "%.2f GiB / %.2f GiB", (sys_info.totalswap - sys_info.freeswap) * bytesToGBMultiplier, sys_info.totalswap * bytesToGBMultiplier);
-    boxFormat("", "swap:", str, "\u001b[38;5;16m", paddingLeft, boxWidth);
+    boxFormat("", "swap:", str, "\u001b[38;5;16m", paddingLeft, boxWidth, 0);
+#endif
 #endif
     // -----------------------------
 
     // Processes
 #ifdef _PROCESSES
     sprintf(str, "%d", sys_info.procs);
-    boxFormat("", "procs:", str, "\u001b[37m", paddingLeft, boxWidth);
+    boxFormat("", "procs:", str, "\u001b[37m", paddingLeft, boxWidth, 0);
 #endif
     // -----------------------------
     
@@ -138,7 +164,7 @@ int main(int argc, char** argv) {
     DIR* dir;
     struct dirent* entry;
     unsigned int count = 0;
-    dir = opendir("/var/lib/pacman/local/");
+    dir = opendir(_PACKAGE_PATH);
     while ((entry = readdir(dir)) != NULL) {
         char* name = entry->d_name;
         if (entry->d_type == DT_DIR) {
@@ -147,10 +173,10 @@ int main(int argc, char** argv) {
             ++count;
         }
     }
-    closedir (dir);
+    closedir(dir);
 
     sprintf(str, "%u", count);
-    boxFormat("", "pkgs:", str, "\u001b[31m", paddingLeft, boxWidth);
+    boxFormat("", "pkgs:", str, "\u001b[31m", paddingLeft, boxWidth, 0);
 #endif
     // -----------------------------
 
@@ -160,13 +186,13 @@ int main(int argc, char** argv) {
     struct group* grp;
     gid = getgid();
     grp = getgrgid(gid);
-    boxFormat("", "user:", grp->gr_name, "\u001b[37m", paddingLeft, boxWidth);
+    boxFormat("", "user:", grp->gr_name, "\u001b[37m", paddingLeft, boxWidth, 0);
 #endif
     // -----------------------------
 
     // Hostname
 #ifdef _HOSTNAME
-    boxFormat("", "hname:", unameData.nodename, "\u001b[34m", paddingLeft, boxWidth);
+    boxFormat("", "hname:", unameData.nodename, "\u001b[34m", paddingLeft, boxWidth, 0);
 #endif
     // -----------------------------
     
@@ -184,7 +210,7 @@ int main(int argc, char** argv) {
             
             sprintf(str, "%.*s", strlen(osName) - 15, osName + (strlen(osName) - 12));
 
-            boxFormat("", "distro:", str, "\u001b[38;5;16m", paddingLeft, boxWidth);
+            boxFormat("", "distro:", str, "\u001b[38;5;16m", paddingLeft, boxWidth, 0);
         }
         else {
             printf("Unable to open /etc/os-release to find distribution name\n");
