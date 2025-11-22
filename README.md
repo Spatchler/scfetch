@@ -1,6 +1,6 @@
 # Simple C Fetch
 
-![](.github/focusedScreenshot.png)
+![](.github/focusedScreenshot.png)![](.github/bars.png)
 
 A very simple single file C fetch that I put together in a rush because fastfetch was too slow.
 The approach to the code was get it working as fast as possible on top of that this was my first time using C
