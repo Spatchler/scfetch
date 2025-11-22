@@ -23,6 +23,7 @@ scfetch 0 35
 
 ### Build with gcc:
 (Remove the macros for the elements you dont want, remove the _BARS macro if you want ram and swap to display as text)
+
 You can also change the colurs by changing the colour macros inside the file using ansi escapes.
 
 ```sh
