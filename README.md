@@ -2,9 +2,8 @@
 
 ![](.github/bars.png)![](.github/nobars.png)
 
-A very simple single file C fetch that I put together in a rush because fastfetch was too slow.
-The approach to the code was get it working as fast as possible on top of that this was my first time using C
-from a C++ backgronud so don't think the code is any good.
+A very simple single file C fetch that I put together in a rush.
+The approach to the code was get it working as fast as possible on top of that this was my first time using C from a C++ backgronud so don't think the code is any good.
 
 This has only been tested on Arch Linux but everything should work except for the package count. To make it work
 you will need to edit the _PACKAGE_PATH marco in the file to the appropriate path.
@@ -24,7 +23,7 @@ scfetch 0 35
 ### Build with gcc:
 (Remove the macros for the elements you dont want, remove the _BARS macro if you want ram and swap to display as text)
 
-You can also change the colurs by changing the colour macros inside the file using ansi escapes.
+You can also change the colurs by changing the colour macros inside the file using [`ansi escapes`](https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797#color-codes).
 
 ```sh
 gcc -D_KERNEL\
