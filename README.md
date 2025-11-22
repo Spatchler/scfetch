@@ -23,9 +23,21 @@ scfetch 0 35
 
 ### Build with gcc:
 (Remove the macros for the elements you dont want, remove the _BARS macro if you want ram and swap to display as text)
+You can also change the colurs by changing the colour macros inside the file using ansi escapes.
 
 ```sh
-gcc -D_KERNEL -D_UPTIME -D_SHELL -D_RAM -D_SWAP -D_PROCESSES -D_PACKAGES -D_USER -D_HOSTNAME -D_DISTRO -D_BARS main.c -o scfetch
+gcc -D_KERNEL\
+    -D_UPTIME\
+    -D_SHELL\
+    -D_RAM\
+    -D_SWAP\
+    -D_PROCESSES\
+    -D_PACKAGES\
+    -D_USER\
+    -D_HOSTNAME\
+    -D_DISTRO\
+    -D_BARS\
+    main.c -o scfetch
 ```
 
 ![](.github/screenshot.png)
