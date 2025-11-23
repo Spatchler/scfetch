@@ -12,6 +12,8 @@ you will need to edit the _PACKAGE_PATH marco in the file to the appropriate pat
 ```sh
 scfetch [paddingLeft] [boxWidth]
 ```
+Minimum width with bars is 31 without is 30.
+Maximum width with bars is 389 without is 456.
 
 (Pipe into echo for very slightly better performance)
 
