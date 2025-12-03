@@ -5,7 +5,7 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
-#include <grp.h>
+#include <pwd.h>
 #include <sys/types.h>
 #include <libgen.h>
 #include <fcntl.h>
@@ -258,12 +258,9 @@ int main(int argc, char** argv) {
 
     // User
 #ifdef _USER
-    gid_t gid;
-    struct group* grp;
-    gid = getgid();
-    grp = getgrgid(gid);
-    boxFormat("", "user:", grp->gr_name, _USER_COLOUR, paddingLeft, boxWidth, 0);
-
+    struct passwd* p = getpwuid(getuid());
+    boxFormat("", "user:", p->pw_name, _USER_COLOUR, paddingLeft, boxWidth, 0);
+    
     #ifdef _PROFILING
         printTimeSince(start, "User");
         start = getTime();
