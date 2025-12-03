@@ -3,9 +3,8 @@
 ![](.github/bars.png)![](.github/nobars.png)
 
 A very simple single file C fetch that I put together in a rush.
-The approach to the code was get it working as fast as possible and running as fast as possible so don't think the code is any good.
 
-For me this performs similar to nitch and faster than fastfetch so guess you could say its fast.
+Testing with `hyperfine -N` nitch had a mean of 1.8ms scfetch 1.0ms and fastfetch 7.7ms.
 
 This has only been tested on Arch Linux but everything should work except for the package count. To make it work
 you will need to edit the _PACKAGE_PATH marco in the file to the appropriate path.
@@ -17,7 +16,7 @@ scfetch [paddingLeft] [boxWidth]
 Minimum width with bars is 31 without is 30.
 Maximum width with bars is 389 without is 456.
 
-(Pipe into echo for very slightly better performance)
+(Pipe into echo for very slightly better performance at least with fish shell)
 
 ### Default:
 ```sh
