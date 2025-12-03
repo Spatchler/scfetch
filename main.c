@@ -12,6 +12,10 @@
 #include <sys/utsname.h>
 #include <dirent.h>
 
+#ifdef _PROFILING
+#include <time.h>
+#endif
+
 #define _PACKAGE_PATH "/var/lib/pacman/local/"
 
 #define _KERNEL_COLOUR "\u001b[38;5;16m"
@@ -65,6 +69,15 @@ void bar(char* buf, float percent, unsigned int width, char* primaryCharacter, c
     }
 }
 
+#ifdef _PROFILING
+clock_t getTime() {
+    return clock();
+}
+void printTimeSince(const clock_t start, const char* moduleName) {
+    printf("Module: '%s' took %u clock ticks\n", moduleName, clock() - start);
+}
+#endif
+
 int main(int argc, char** argv) {
     // printf("\x1b[38;5;16m");
     // printf("     ______           __          __  _\n");
@@ -72,6 +85,10 @@ int main(int argc, char** argv) {
     // printf("   / /   / __ `/ _ \\/ / _ \\/ ___/ __/ / __ `/\n");
     // printf("  / /___/ /_/ /  __/ /  __(__  ) /_/ / /_/ /\n");
     // printf("  \\____/\\__,_/\\___/_/\\___/____/\\__/_/\\__,_/\n\n");
+
+#ifdef _PROFILING
+    clock_t start = getTime();
+#endif
 
     unsigned int paddingLeft = 0;
     unsigned int boxWidth = 35;
@@ -90,12 +107,22 @@ int main(int argc, char** argv) {
         }
     }
 
+#ifdef _PROFILING
+    printTimeSince(start, "Parse arguments");
+    start = getTime();
+#endif
+
     for (unsigned int i = paddingLeft; i != 0; --i)
         printf(" ");
     printf("╭");
     for (unsigned int i = boxWidth; i != 0; --i)
         printf("─");
     printf("╮\n");
+
+#ifdef _PROFILING
+    printTimeSince(start, "Box opening line");
+    start = getTime();
+#endif
 
     struct sysinfo sys_info;
     char* str = (char*)malloc(100*sizeof(char));
@@ -106,6 +133,11 @@ int main(int argc, char** argv) {
     // Kernel
 #ifdef _KERNEL
     boxFormat("", "kernel:", unameData.release, _KERNEL_COLOUR, paddingLeft, boxWidth, 0);
+
+    #ifdef _PROFILING
+        printTimeSince(start, "Kernel");
+        start = getTime();
+    #endif
 #endif
     // -----------------------------
 
@@ -122,6 +154,11 @@ int main(int argc, char** argv) {
 
     sprintf(str, "%d hours, %d minutes", hours, mins);
     boxFormat("", "uptime:", str, _UPTIME_COLOUR, paddingLeft, boxWidth, 0);
+    
+    #ifdef _PROFILING
+        printTimeSince(start, "Uptime");
+        start = getTime();
+    #endif
 #endif
     // -----------------------------
 
@@ -137,31 +174,47 @@ int main(int argc, char** argv) {
 
     comm[strcspn(comm, "\n")] = 0; // Remove \n from end of comm
     boxFormat("", "shell:", comm, _SHELL_COLOUR, paddingLeft, boxWidth, 0);
+    
+    #ifdef _PROFILING
+        printTimeSince(start, "Shell");
+        start = getTime();
+    #endif
 #endif
     // -----------------------------
 
     // Ram
 #ifdef _RAM
     double bytesToGBMultiplier = 9.313225746154785e-10;
-#ifdef _BARS
-    bar(str, (float)(sys_info.totalram - sys_info.freeram) / sys_info.totalram, 20, "━","╸", "━", _RAM_COLOUR, _RAM_COLOUR, _BAR_BG_COLOUR);
-    boxFormat("", "mem:", str, _RAM_COLOUR, paddingLeft, boxWidth, 21);
-#else
-    sprintf(str, "%.2f GiB / %.2f GiB", (sys_info.totalram - sys_info.freeram) * bytesToGBMultiplier, sys_info.totalram * bytesToGBMultiplier);
-    boxFormat("", "mem:", str, _RAM_COLOUR, paddingLeft, boxWidth, 0);
-#endif
+
+    #ifdef _BARS
+        bar(str, (float)(sys_info.totalram - sys_info.freeram) / sys_info.totalram, 20, "━","╸", "━", _RAM_COLOUR, _RAM_COLOUR, _BAR_BG_COLOUR);
+        boxFormat("", "mem:", str, _RAM_COLOUR, paddingLeft, boxWidth, 21);
+    #else
+        sprintf(str, "%.2f GiB / %.2f GiB", (sys_info.totalram - sys_info.freeram) * bytesToGBMultiplier, sys_info.totalram * bytesToGBMultiplier);
+        boxFormat("", "mem:", str, _RAM_COLOUR, paddingLeft, boxWidth, 0);
+    #endif
+
+    #ifdef _PROFILING
+        printTimeSince(start, "RAM");
+        start = getTime();
+    #endif
 #endif
     // -----------------------------
 
     // Swap
 #ifdef _SWAP
-#ifdef _BARS
-    bar(str, (float)(sys_info.totalswap - sys_info.freeswap) / sys_info.totalswap, 20, "━","╸", "━", _SWAP_COLOUR, _SWAP_COLOUR, _BAR_BG_COLOUR);
-    boxFormat("", "swap:", str, _SWAP_COLOUR, paddingLeft, boxWidth, 21);
-#else
-    sprintf(str, "%.2f GiB / %.2f GiB", (sys_info.totalswap - sys_info.freeswap) * bytesToGBMultiplier, sys_info.totalswap * bytesToGBMultiplier);
-    boxFormat("", "swap:", str, _SWAP_COLOUR, paddingLeft, boxWidth, 0);
-#endif
+    #ifdef _BARS
+        bar(str, (float)(sys_info.totalswap - sys_info.freeswap) / sys_info.totalswap, 20, "━","╸", "━", _SWAP_COLOUR, _SWAP_COLOUR, _BAR_BG_COLOUR);
+        boxFormat("", "swap:", str, _SWAP_COLOUR, paddingLeft, boxWidth, 21);
+    #else
+        sprintf(str, "%.2f GiB / %.2f GiB", (sys_info.totalswap - sys_info.freeswap) * bytesToGBMultiplier, sys_info.totalswap * bytesToGBMultiplier);
+        boxFormat("", "swap:", str, _SWAP_COLOUR, paddingLeft, boxWidth, 0);
+    #endif
+
+    #ifdef _PROFILING
+        printTimeSince(start, "Swap");
+        start = getTime();
+    #endif
 #endif
     // -----------------------------
 
@@ -169,6 +222,11 @@ int main(int argc, char** argv) {
 #ifdef _PROCESSES
     sprintf(str, "%d", sys_info.procs);
     boxFormat("", "procs:", str, _PROCESSES_COLOUR, paddingLeft, boxWidth, 0);
+
+    #ifdef _PROFILING
+        printTimeSince(start, "Processes");
+        start = getTime();
+    #endif
 #endif
     // -----------------------------
     
@@ -190,6 +248,11 @@ int main(int argc, char** argv) {
 
     sprintf(str, "%u", count);
     boxFormat("", "pkgs:", str, _PACKAGES_COLOUR, paddingLeft, boxWidth, 0);
+
+    #ifdef _PROFILING
+        printTimeSince(start, "Packages");
+        start = getTime();
+    #endif
 #endif
     // -----------------------------
 
@@ -200,12 +263,22 @@ int main(int argc, char** argv) {
     gid = getgid();
     grp = getgrgid(gid);
     boxFormat("", "user:", grp->gr_name, _USER_COLOUR, paddingLeft, boxWidth, 0);
+
+    #ifdef _PROFILING
+        printTimeSince(start, "User");
+        start = getTime();
+    #endif
 #endif
     // -----------------------------
 
     // Hostname
 #ifdef _HOSTNAME
     boxFormat("", "hname:", unameData.nodename, _HOSTNAME_COLOUR, paddingLeft, boxWidth, 0);
+
+    #ifdef _PROFILING
+        printTimeSince(start, "Hostname");
+        start = getTime();
+    #endif
 #endif
     // -----------------------------
     
@@ -234,6 +307,11 @@ int main(int argc, char** argv) {
         char* errStr = strerror(errno);
         printf("error string: %s\n", errStr);
     }
+
+    #ifdef _PROFILING
+        printTimeSince(start, "Distro");
+        start = getTime();
+    #endif
 #endif
     // -----------------------------
     
@@ -243,6 +321,11 @@ int main(int argc, char** argv) {
     for (unsigned int i = boxWidth; i != 0; --i)
         printf("─");
     printf("╯\n");
+
+#ifdef _PROFILING
+    printTimeSince(start, "Box closing line");
+    start = getTime();
+#endif
 
     free(str);
 
