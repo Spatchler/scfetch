@@ -1,6 +1,8 @@
 # Simple C Fetch
 
+### main.c:
 ![](.github/bars.png)![](.github/nobars.png)
+### alt.c:
 ![](.github/alt.png)
 
 A very simple single file C fetch that I put together in a rush.
