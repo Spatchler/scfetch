@@ -5,7 +5,7 @@
 
 A very simple single file C fetch that I put together in a rush.
 
-Testing with `hyperfine -N` nitch had a mean of 1.8ms scfetch 1.0ms and fastfetch 7.7ms.
+Testing with `hyperfine -N`: nitch had a mean of 1.8ms, scfetch 1.0ms and fastfetch 7.7ms.
 
 This has only been tested on Arch Linux but everything should work except for the package count. To make it work
 you will need to edit the _PACKAGE_PATH marco in the file to the appropriate path.
