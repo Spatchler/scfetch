@@ -1,7 +1,7 @@
 # Simple C Fetch
 
 ### Normal:
-![](.github/bars.png)![](.github/nobars.png)
+![](.github/bars.png)![](.github/normalColours.png)
 ### Alt:
 ![](.github/alt.png)![](.github/altColours.png)
 
@@ -51,6 +51,6 @@ gcc -D_KERNEL\
     main.c -o scfetch
 ```
 
-![](.github/normalColours.png)
+![](.github/nobars.png)
 ![](.github/screenshot.png)
 
