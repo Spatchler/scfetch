@@ -18,16 +18,17 @@
 
 #define _PACKAGE_PATH "/var/lib/pacman/local/"
 
-#define _KERNEL_COLOUR "\u001b[38;5;16m"
-#define _UPTIME_COLOUR "\u001b[37m"
-#define _SHELL_COLOUR "\u001b[38;5;16m"
-#define _RAM_COLOUR "\u001b[38;5;17m"
-#define _SWAP_COLOUR "\u001b[38;5;16m"
-#define _PROCESSES_COLOUR "\u001b[37m"
-#define _PACKAGES_COLOUR "\u001b[31m"
-#define _USER_COLOUR "\u001b[37m"
-#define _HOSTNAME_COLOUR "\u001b[34m"
-#define _DISTRO_COLOUR "\u001b[38;5;16m"
+#define _USER_COLOUR "\u001b[31m"
+#define _HOSTNAME_COLOUR "\u001b[33m"
+#define _DISTRO_COLOUR "\u001b[32m"
+#define _KERNEL_COLOUR "\u001b[36m"
+#define _UPTIME_COLOUR "\u001b[34m"
+#define _SHELL_COLOUR "\u001b[35m"
+#define _RAM_COLOUR "\u001b[31m"
+#define _SWAP_COLOUR "\u001b[33m"
+#define _PROCESSES_COLOUR "\u001b[32m"
+#define _PACKAGES_COLOUR "\u001b[36m"
+#define _COLOURS_COLOUR "\u001b[37m"
 
 #define _BAR_BG_COLOUR "\u001b[90m"
 
@@ -47,6 +48,7 @@ void boxFormat(char* icon, char* start, char* end, char* color, unsigned int pad
     strcat(out, "\u001b[37m  "); // Reset color
     strcat(out, "\u001b[1m"); // Set bold
     strcat(out, start);
+#ifndef _ALT
     for (unsigned int i = boxWidth - (strlen(start) + 5) - endLen; i != 0; --i)
         strcat(out, space);
     strcat(out, color); // Set color
@@ -55,6 +57,16 @@ void boxFormat(char* icon, char* start, char* end, char* color, unsigned int pad
     strcat(out, boxEnd);
     strcat(out, "\n");
     printf("%s", out);
+#else
+    for (unsigned int i = strlen(start) + 5; i < boxWidth; ++i)
+        strcat(out, space);
+    strcat(out, boxEnd);
+    strcat(out, space);
+    strcat(out, color); // Set color
+    strcat(out, end);
+    strcat(out, "\u001b[37;22m"); // Reset color and bold
+    printf("%s\n", out);
+#endif
 }
 
 void bar(char* buf, float percent, unsigned int width, char* primaryCharacter, char* halfwayCharacter, char* secondaryCharacter, char* primaryColour, char* halfwayColour, char* secondaryColour) {
@@ -78,19 +90,16 @@ void printTimeSince(const clock_t start, const char* moduleName) {
 #endif
 
 int main(int argc, char** argv) {
-    // printf("\x1b[38;5;16m");
-    // printf("     ______           __          __  _\n");
-    // printf("    / ____/___ ____  / /__  _____/ /_(_)___ _\n");
-    // printf("   / /   / __ `/ _ \\/ / _ \\/ ___/ __/ / __ `/\n");
-    // printf("  / /___/ /_/ /  __/ /  __(__  ) /_/ / /_/ /\n");
-    // printf("  \\____/\\__,_/\\___/_/\\___/____/\\__/_/\\__,_/\n\n");
-
 #ifdef _PROFILING
     clock_t start = getTime();
 #endif
 
     unsigned int paddingLeft = 0;
+#ifndef _ALT
     unsigned int boxWidth = 35;
+#else
+    unsigned int boxWidth = 11;
+#endif
 
     if (argc > 1) {
         for (uint i = 0; i < strlen(argv[1]); ++i) {
@@ -129,9 +138,65 @@ int main(int argc, char** argv) {
     struct utsname unameData;
     uname(&unameData);
 
+    // User
+#ifdef _USER
+    struct passwd* p = getpwuid(getuid());
+    boxFormat("", "user", p->pw_name, _USER_COLOUR, paddingLeft, boxWidth, 0);
+    
+    #ifdef _PROFILING
+        printTimeSince(start, "User");
+        start = getTime();
+    #endif
+#endif
+    // -----------------------------
+
+    // Hostname
+#ifdef _HOSTNAME
+    boxFormat("", "hname", unameData.nodename, _HOSTNAME_COLOUR, paddingLeft, boxWidth, 0);
+
+    #ifdef _PROFILING
+        printTimeSince(start, "Hostname");
+        start = getTime();
+    #endif
+#endif
+    // -----------------------------
+    
+    // Distro
+#ifdef _DISTRO
+    char buf[PATH_MAX];
+    char* res = realpath("/etc/os-release", buf);
+    if (res) {
+        FILE* fptr;
+        fptr = fopen(buf, "r");
+        if (fptr != NULL) {
+            char osName[50];
+            fgets(osName, 50, fptr);
+            fgets(osName, 50, fptr);
+            
+            sprintf(str, "%.*s", strlen(osName) - 15, osName + (strlen(osName) - 12));
+
+            boxFormat("", "distro", str, _DISTRO_COLOUR, paddingLeft, boxWidth, 0);
+        }
+        else {
+            printf("Unable to open /etc/os-release to find distribution name\n");
+        }
+        fclose(fptr);
+    }
+    else {
+        char* errStr = strerror(errno);
+        printf("error string: %s\n", errStr);
+    }
+
+    #ifdef _PROFILING
+        printTimeSince(start, "Distro");
+        start = getTime();
+    #endif
+#endif
+    // -----------------------------
+
     // Kernel
 #ifdef _KERNEL
-    boxFormat("", "kernel:", unameData.release, _KERNEL_COLOUR, paddingLeft, boxWidth, 0);
+    boxFormat("", "kernel", unameData.release, _KERNEL_COLOUR, paddingLeft, boxWidth, 0);
 
     #ifdef _PROFILING
         printTimeSince(start, "Kernel");
@@ -152,7 +217,7 @@ int main(int argc, char** argv) {
     mins = (sys_info.uptime / 60) - (days * 1440) - (hours * 60);
 
     sprintf(str, "%d hours, %d minutes", hours, mins);
-    boxFormat("", "uptime:", str, _UPTIME_COLOUR, paddingLeft, boxWidth, 0);
+    boxFormat("", "uptime", str, _UPTIME_COLOUR, paddingLeft, boxWidth, 0);
     
     #ifdef _PROFILING
         printTimeSince(start, "Uptime");
@@ -172,7 +237,7 @@ int main(int argc, char** argv) {
     read(fd, comm, BUFSIZ-1);
 
     comm[strcspn(comm, "\n")] = 0; // Remove \n from end of comm
-    boxFormat("", "shell:", comm, _SHELL_COLOUR, paddingLeft, boxWidth, 0);
+    boxFormat("", "shell", comm, _SHELL_COLOUR, paddingLeft, boxWidth, 0);
     
     #ifdef _PROFILING
         printTimeSince(start, "Shell");
@@ -187,10 +252,10 @@ int main(int argc, char** argv) {
 
     #ifdef _BARS
         bar(str, (float)(sys_info.totalram - sys_info.freeram) / sys_info.totalram, 20, "━","╸", "━", _RAM_COLOUR, _RAM_COLOUR, _BAR_BG_COLOUR);
-        boxFormat("", "mem:", str, _RAM_COLOUR, paddingLeft, boxWidth, 21);
+        boxFormat("󰍛", "mem", str, _RAM_COLOUR, paddingLeft, boxWidth, 21);
     #else
         sprintf(str, "%.2f GiB / %.2f GiB", (sys_info.totalram - sys_info.freeram) * bytesToGBMultiplier, sys_info.totalram * bytesToGBMultiplier);
-        boxFormat("", "mem:", str, _RAM_COLOUR, paddingLeft, boxWidth, 0);
+        boxFormat("", "mem", str, _RAM_COLOUR, paddingLeft, boxWidth, 0);
     #endif
 
     #ifdef _PROFILING
@@ -204,10 +269,10 @@ int main(int argc, char** argv) {
 #ifdef _SWAP
     #ifdef _BARS
         bar(str, (float)(sys_info.totalswap - sys_info.freeswap) / sys_info.totalswap, 20, "━","╸", "━", _SWAP_COLOUR, _SWAP_COLOUR, _BAR_BG_COLOUR);
-        boxFormat("", "swap:", str, _SWAP_COLOUR, paddingLeft, boxWidth, 21);
+        boxFormat("", "swap", str, _SWAP_COLOUR, paddingLeft, boxWidth, 21);
     #else
         sprintf(str, "%.2f GiB / %.2f GiB", (sys_info.totalswap - sys_info.freeswap) * bytesToGBMultiplier, sys_info.totalswap * bytesToGBMultiplier);
-        boxFormat("", "swap:", str, _SWAP_COLOUR, paddingLeft, boxWidth, 0);
+        boxFormat("", "swap", str, _SWAP_COLOUR, paddingLeft, boxWidth, 0);
     #endif
 
     #ifdef _PROFILING
@@ -220,7 +285,7 @@ int main(int argc, char** argv) {
     // Processes
 #ifdef _PROCESSES
     sprintf(str, "%d", sys_info.procs);
-    boxFormat("", "procs:", str, _PROCESSES_COLOUR, paddingLeft, boxWidth, 0);
+    boxFormat("", "procs", str, _PROCESSES_COLOUR, paddingLeft, boxWidth, 0);
 
     #ifdef _PROFILING
         printTimeSince(start, "Processes");
@@ -246,7 +311,7 @@ int main(int argc, char** argv) {
     closedir(dir);
 
     sprintf(str, "%u", count);
-    boxFormat("", "pkgs:", str, _PACKAGES_COLOUR, paddingLeft, boxWidth, 0);
+    boxFormat("", "pkgs", str, _PACKAGES_COLOUR, paddingLeft, boxWidth, 0);
 
     #ifdef _PROFILING
         printTimeSince(start, "Packages");
@@ -255,57 +320,19 @@ int main(int argc, char** argv) {
 #endif
     // -----------------------------
 
-    // User
-#ifdef _USER
-    struct passwd* p = getpwuid(getuid());
-    boxFormat("", "user:", p->pw_name, _USER_COLOUR, paddingLeft, boxWidth, 0);
-    
-    #ifdef _PROFILING
-        printTimeSince(start, "User");
-        start = getTime();
-    #endif
-#endif
-    // -----------------------------
+    // Colours
+#ifdef _COLOURS
+    for (unsigned int i = paddingLeft; i != 0; --i)
+        printf(" ");
+    printf("├");
+    for (unsigned int i = boxWidth; i != 0; --i)
+        printf("─");
+    printf("┤\n");
 
-    // Hostname
-#ifdef _HOSTNAME
-    boxFormat("", "hname:", unameData.nodename, _HOSTNAME_COLOUR, paddingLeft, boxWidth, 0);
+    boxFormat("", "colors", "\u001b[37m \u001b[36m \u001b[35m \u001b[34m \u001b[33m \u001b[32m \u001b[31m \u001b[30m", _COLOURS_COLOUR, paddingLeft, boxWidth, 15);
 
     #ifdef _PROFILING
-        printTimeSince(start, "Hostname");
-        start = getTime();
-    #endif
-#endif
-    // -----------------------------
-    
-    // Distro
-#ifdef _DISTRO
-    char buf[PATH_MAX];
-    char* res = realpath("/etc/os-release", buf);
-    if (res) {
-        FILE* fptr;
-        fptr = fopen(buf, "r");
-        if (fptr != NULL) {
-            char osName[50];
-            fgets(osName, 50, fptr);
-            fgets(osName, 50, fptr);
-            
-            sprintf(str, "%.*s", strlen(osName) - 15, osName + (strlen(osName) - 12));
-
-            boxFormat("", "distro:", str, _DISTRO_COLOUR, paddingLeft, boxWidth, 0);
-        }
-        else {
-            printf("Unable to open /etc/os-release to find distribution name\n");
-        }
-        fclose(fptr);
-    }
-    else {
-        char* errStr = strerror(errno);
-        printf("error string: %s\n", errStr);
-    }
-
-    #ifdef _PROFILING
-        printTimeSince(start, "Distro");
+        printTimeSince(start, "Colours");
         start = getTime();
     #endif
 #endif

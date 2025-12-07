@@ -1,9 +1,9 @@
 # Simple C Fetch
 
-### main.c:
+### Normal:
 ![](.github/bars.png)![](.github/nobars.png)
-### alt.c:
-![](.github/alt.png)
+### Alt:
+![](.github/alt.png)![](.github/altColours.png)
 
 A very simple single file C fetch that I put together in a rush.
 
@@ -29,6 +29,8 @@ scfetch 0 35
 ### Build with gcc:
 (Remove the macros for the elements you dont want, remove the _BARS macro if you want ram and swap to display as text)
 
+Add the _ALT macro if you want the alternate version.
+
 There is also a _PROFILING macro that times all the modules.
 
 You can also change the colours by changing the colour macros inside the file using [`ansi escapes`](https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797#color-codes).
@@ -45,8 +47,10 @@ gcc -D_KERNEL\
     -D_HOSTNAME\
     -D_DISTRO\
     -D_BARS\
+    -D_COLOURS\
     main.c -o scfetch
 ```
 
+![](.github/normalColours.png)
 ![](.github/screenshot.png)
 
