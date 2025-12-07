@@ -1,7 +1,7 @@
 # Simple C Fetch
 
 ### Normal:
-![](.github/bars.png)![](.github/normalColours.png)
+![](.github/bars.png)![](.github/colours.png)
 ### Alt:
 ![](.github/alt.png)![](.github/altColours.png)
 
