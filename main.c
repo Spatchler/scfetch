@@ -84,13 +84,14 @@ void bar(char* buf, float percent, unsigned int width, char* primaryCharacter, c
 clock_t getTime() {
     return clock();
 }
-void printTimeSince(const clock_t start, const char* moduleName) {
-    printf("Module: '%s' took %u clock ticks\n", moduleName, clock() - start);
+void printTimeSince(char* buf, const clock_t start, const char* moduleName) {
+    sprintf(buf + strlen(buf), "Module: '%s' took %u clock ticks\n", moduleName, clock() - start);
 }
 #endif
 
 int main(int argc, char** argv) {
 #ifdef _PROFILING
+    char* profilingStr = (char*)malloc(1000*sizeof(char));
     clock_t start = getTime();
 #endif
 
@@ -116,7 +117,7 @@ int main(int argc, char** argv) {
     }
 
 #ifdef _PROFILING
-    printTimeSince(start, "Parse arguments");
+    printTimeSince(profilingStr, start, "Parse arguments");
     start = getTime();
 #endif
 
@@ -128,7 +129,7 @@ int main(int argc, char** argv) {
     printf("╮\n");
 
 #ifdef _PROFILING
-    printTimeSince(start, "Box opening line");
+    printTimeSince(profilingStr, start, "Box opening line");
     start = getTime();
 #endif
 
@@ -144,7 +145,7 @@ int main(int argc, char** argv) {
     boxFormat("", "user", p->pw_name, _USER_COLOUR, paddingLeft, boxWidth, 0);
     
     #ifdef _PROFILING
-        printTimeSince(start, "User");
+        printTimeSince(profilingStr, start, "User");
         start = getTime();
     #endif
 #endif
@@ -155,7 +156,7 @@ int main(int argc, char** argv) {
     boxFormat("", "hname", unameData.nodename, _HOSTNAME_COLOUR, paddingLeft, boxWidth, 0);
 
     #ifdef _PROFILING
-        printTimeSince(start, "Hostname");
+        printTimeSince(profilingStr, start, "Hostname");
         start = getTime();
     #endif
 #endif
@@ -188,7 +189,7 @@ int main(int argc, char** argv) {
     }
 
     #ifdef _PROFILING
-        printTimeSince(start, "Distro");
+        printTimeSince(profilingStr, start, "Distro");
         start = getTime();
     #endif
 #endif
@@ -199,7 +200,7 @@ int main(int argc, char** argv) {
     boxFormat("", "kernel", unameData.release, _KERNEL_COLOUR, paddingLeft, boxWidth, 0);
 
     #ifdef _PROFILING
-        printTimeSince(start, "Kernel");
+        printTimeSince(profilingStr, start, "Kernel");
         start = getTime();
     #endif
 #endif
@@ -220,7 +221,7 @@ int main(int argc, char** argv) {
     boxFormat("", "uptime", str, _UPTIME_COLOUR, paddingLeft, boxWidth, 0);
     
     #ifdef _PROFILING
-        printTimeSince(start, "Uptime");
+        printTimeSince(profilingStr, start, "Uptime");
         start = getTime();
     #endif
 #endif
@@ -240,7 +241,7 @@ int main(int argc, char** argv) {
     boxFormat("", "shell", comm, _SHELL_COLOUR, paddingLeft, boxWidth, 0);
     
     #ifdef _PROFILING
-        printTimeSince(start, "Shell");
+        printTimeSince(profilingStr, start, "Shell");
         start = getTime();
     #endif
 #endif
@@ -259,7 +260,7 @@ int main(int argc, char** argv) {
     #endif
 
     #ifdef _PROFILING
-        printTimeSince(start, "RAM");
+        printTimeSince(profilingStr, start, "RAM");
         start = getTime();
     #endif
 #endif
@@ -276,7 +277,7 @@ int main(int argc, char** argv) {
     #endif
 
     #ifdef _PROFILING
-        printTimeSince(start, "Swap");
+        printTimeSince(profilingStr, start, "Swap");
         start = getTime();
     #endif
 #endif
@@ -288,7 +289,7 @@ int main(int argc, char** argv) {
     boxFormat("", "procs", str, _PROCESSES_COLOUR, paddingLeft, boxWidth, 0);
 
     #ifdef _PROFILING
-        printTimeSince(start, "Processes");
+        printTimeSince(profilingStr, start, "Processes");
         start = getTime();
     #endif
 #endif
@@ -314,7 +315,7 @@ int main(int argc, char** argv) {
     boxFormat("", "pkgs", str, _PACKAGES_COLOUR, paddingLeft, boxWidth, 0);
 
     #ifdef _PROFILING
-        printTimeSince(start, "Packages");
+        printTimeSince(profilingStr, start, "Packages");
         start = getTime();
     #endif
 #endif
@@ -332,7 +333,7 @@ int main(int argc, char** argv) {
     boxFormat("", "colors", "\u001b[37m \u001b[36m \u001b[35m \u001b[34m \u001b[33m \u001b[32m \u001b[31m \u001b[30m", _COLOURS_COLOUR, paddingLeft, boxWidth, 15);
 
     #ifdef _PROFILING
-        printTimeSince(start, "Colours");
+        printTimeSince(profilingStr, start, "Colours");
         start = getTime();
     #endif
 #endif
@@ -346,8 +347,9 @@ int main(int argc, char** argv) {
     printf("╯\n");
 
 #ifdef _PROFILING
-    printTimeSince(start, "Box closing line");
-    start = getTime();
+    printTimeSince(profilingStr, start, "Box closing line");
+    printf("%s", profilingStr);
+    free(profilingStr);
 #endif
 
     free(str);
