@@ -23,7 +23,10 @@ Maximum width with bars is 389 without is 456.
 
 ### Default:
 ```sh
+# Normal
 scfetch 0 35
+# Alt
+scfetch 0 11
 ```
 
 ### Build with gcc:
