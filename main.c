@@ -252,10 +252,10 @@ int main(int argc, char** argv) {
     double bytesToGBMultiplier = 9.313225746154785e-10;
 
     #ifdef _BARS
-        bar(str, (float)(sys_info.totalram - sys_info.freeram) / sys_info.totalram, 20, "━","╸", "━", _RAM_COLOUR, _RAM_COLOUR, _BAR_BG_COLOUR);
+        bar(str, (float)(sys_info.totalram - sys_info.freeram - sys_info.bufferram) / sys_info.totalram, 20, "━","╸", "━", _RAM_COLOUR, _RAM_COLOUR, _BAR_BG_COLOUR);
         boxFormat("󰍛", "mem", str, _RAM_COLOUR, paddingLeft, boxWidth, 21);
     #else
-        sprintf(str, "%.2f GiB / %.2f GiB", (sys_info.totalram - sys_info.freeram) * bytesToGBMultiplier, sys_info.totalram * bytesToGBMultiplier);
+        sprintf(str, "%.2f GiB / %.2f GiB", (sys_info.totalram - sys_info.freeram - sys_info.bufferram) * bytesToGBMultiplier, sys_info.totalram * bytesToGBMultiplier);
         boxFormat("", "mem", str, _RAM_COLOUR, paddingLeft, boxWidth, 0);
     #endif
 
