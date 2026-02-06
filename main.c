@@ -251,8 +251,19 @@ int main(int argc, char** argv) {
 #ifdef _RAM
     double bytesToGBMultiplier = 9.313225746154785e-10;
 
+    FILE* file = fopen("/proc/meminfo", "r");
+    if (!file)
+        printf("unable to open /proc/meminfo");
+    fgets(str, 100, file);
+    fgets(str, 100, file);
+    fgets(str, 100, file);
+    char* dest;
+    dest = strndup(str+13, 12);
+    unsigned long availableram = strtol(dest, NULL, 10) * 1024;
+    fclose(file);
+
     #ifdef _BARS
-        bar(str, (float)(sys_info.totalram - sys_info.freeram - sys_info.bufferram) / sys_info.totalram, 20, "━","╸", "━", _RAM_COLOUR, _RAM_COLOUR, _BAR_BG_COLOUR);
+        bar(str, (float)(sys_info.totalram - availableram) / sys_info.totalram, 20, "━","╸", "━", _RAM_COLOUR, _RAM_COLOUR, _BAR_BG_COLOUR);
         boxFormat("󰍛", "mem", str, _RAM_COLOUR, paddingLeft, boxWidth, 21);
     #else
         sprintf(str, "%.2f GiB / %.2f GiB", (sys_info.totalram - sys_info.freeram - sys_info.bufferram) * bytesToGBMultiplier, sys_info.totalram * bytesToGBMultiplier);
