@@ -71,13 +71,16 @@ void boxFormat(char* icon, char* start, char* end, char* color, unsigned int pad
 
 void bar(char* buf, float percent, unsigned int width, char* primaryCharacter, char* halfwayCharacter, char* secondaryCharacter, char* primaryColour, char* halfwayColour, char* secondaryColour) {
     sprintf(buf, "%s", primaryColour);
-    for (unsigned int i = 0; i < width * percent - 1; ++i) {
+    for (unsigned int i = 0; i < width * percent - 1; ++i)
         sprintf(buf + strlen(buf), "%s", primaryCharacter);
-    }
-    sprintf(buf + strlen(buf), "%s%s%s", halfwayColour, halfwayCharacter, secondaryColour);
-    for (unsigned int i = 0; i < width * (1-percent); ++i) {
+
+    if ((float)width * percent > 0.5f)
+        sprintf(buf + strlen(buf), "%s%s%s", halfwayColour, halfwayCharacter, secondaryColour);
+    else
+        sprintf(buf + strlen(buf), "%s%s", secondaryColour, secondaryCharacter);
+
+    for (unsigned int i = 0; i < width * (1-percent); ++i)
         sprintf(buf + strlen(buf), "%s", secondaryCharacter);
-    }
 }
 
 #ifdef _PROFILING
@@ -178,9 +181,8 @@ int main(int argc, char** argv) {
 
             boxFormat("", "distro", str, _DISTRO_COLOUR, paddingLeft, boxWidth, 0);
         }
-        else {
+        else
             printf("Unable to open /etc/os-release to find distribution name\n");
-        }
         fclose(fptr);
     }
     else {
@@ -266,7 +268,7 @@ int main(int argc, char** argv) {
         bar(str, (float)(sys_info.totalram - availableram) / sys_info.totalram, 20, "━","╸", "━", _RAM_COLOUR, _RAM_COLOUR, _BAR_BG_COLOUR);
         boxFormat("󰍛", "mem", str, _RAM_COLOUR, paddingLeft, boxWidth, 21);
     #else
-        sprintf(str, "%.2f GiB / %.2f GiB", (sys_info.totalram - sys_info.freeram - sys_info.bufferram) * bytesToGBMultiplier, sys_info.totalram * bytesToGBMultiplier);
+        sprintf(str, "%.2f GiB / %.2f GiB", (sys_info.totalram - avilableram) * bytesToGBMultiplier, sys_info.totalram * bytesToGBMultiplier);
         boxFormat("", "mem", str, _RAM_COLOUR, paddingLeft, boxWidth, 0);
     #endif
 
